@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Finance Reports and Calculations</title>
+<title>Elangovan - Finance Reports and Calculations</title>
 <style>
 :root{--bg:#f5f6f8;--card:#fff;--tx:#1b1f24;--mu:#6b7280;--ac:#0f766e;--bd:#e2e5ea;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111418;--card:#1b2026;--tx:#eceff3;--mu:#98a2b0;--ac:#2dd4bf;--bd:#2c333b}}
@@ -33,7 +33,7 @@ tfoot td{font-weight:700;padding:8px 6px}
 @media print{#lg{display:none!important}}
 </style></head><body>
 <div id="lg"><div class="lc">
-<h2>💰 Finance Reports</h2><div style="color:var(--mu);font-size:13px">Login pannunga</div>
+<h2>💰 Elangovan - Finance Reports</h2><div style="color:var(--mu);font-size:13px">Login pannunga</div>
 <label>User Name</label><input id="lu" type="text" autocomplete="username" onkeydown="if(event.key=='Enter')document.getElementById('lp').focus()">
 <label>Password</label><input id="lp" type="password" autocomplete="current-password" onkeydown="if(event.key=='Enter')doLogin()">
 <label style="display:flex;gap:6px;align-items:center;margin-top:10px"><input type="checkbox" style="width:auto" onchange="document.getElementById('lp').type=this.checked?'text':'password'"> Show password</label>
@@ -41,16 +41,13 @@ tfoot td{font-weight:700;padding:8px 6px}
 <button class="go" onclick="doLogin()">Login</button>
 </div></div>
 <div id="main" style="display:none">
-<h1>Finance Reports and Calculations</h1>
+<h1>Finance Reports and Calculations - Elangovan</h1>
 <div class="sub">Amount + Rate enter pannina Per Day / Per Month interest auto-a varum. Start Date + Days enter pannina End Date varum.</div>
 <div class="bar">
 <label style="font-size:13px">Rate basis:
 <select id="basis" onchange="save();render()"><option value="30">per month (₹ per 100 / month)</option><option value="365">per year (% per annum)</option></select></label>
 <button onclick="dlAll()">⬇ Download All (Excel/CSV)</button>
 <button class="g" onclick="window.print()">🖨 Print / Save PDF</button>
-<button style="background:#dc2626" onclick="showTO(-1)">⏳ All Pending Name List</button>
-<button style="background:#16a34a" onclick="showTO(-1,'d')">✅ All Deposited Name List</button>
-<button style="background:#7c3aed" onclick="showTO(-1,'f')">💹 Overall Interest</button>
 <button style="background:#0ea5e9" onclick="showExp()">🧾 Expenses</button>
 <button style="background:#b45309" onclick="showOver()">⌛ End Date Over Name List</button>
 <span id="ulbl" style="margin-left:auto;font-size:13px;color:var(--mu)"></span><button class="g" onclick="logout()">Logout</button>
@@ -61,11 +58,10 @@ tfoot td{font-weight:700;padding:8px 6px}
 <script>
 let S;
 const blank=()=>({name:"",native:"",guar:"",amt:"",rate:"",start:"",days:"",dep:"",type:""});
-function load(){try{S=JSON.parse(localStorage.getItem("fin2"))}catch(e){}
-if(!S){try{S=JSON.parse(localStorage.getItem("fin1"))}catch(e){}}
-if(!S)S={basis:"30",p:[{title:"",rows:[blank()]},{title:"",rows:[blank()]}]}
-const T=["Partner 1 - Elangovan","Partner 2 - Mathiyalagan"];S.p.forEach((p,i)=>{if(!p.title||/^Partner [12]$/.test(p.title))p.title=T[i]})}
-function save(){S.basis=document.getElementById("basis").value;try{localStorage.setItem("fin2",JSON.stringify(S))}catch(e){}}
+function load(){try{S=JSON.parse(localStorage.getItem("finE"))}catch(e){}
+if(!S)S={basis:"30",p:[{title:"",rows:[blank()]}]}
+S.p=[S.p[0]];S.p[0].title=S.p[0].title&&!/^Partner/.test(S.p[0].title)?S.p[0].title:"Elangovan"}
+function save(){S.basis=document.getElementById("basis").value;try{localStorage.setItem("finE",JSON.stringify(S))}catch(e){}}
 const B=()=>+S.basis;
 function pday(r){return (+r.amt||0)*(+r.rate||0)/100/B()}
 function pmon(r){return pday(r)*30}
@@ -74,13 +70,17 @@ function stBadge(r){const t=st(r);if(!t)return"";const c=t=="Done"?"#16a34a":"#d
 function cnt(r){const d=+r.days||0;if(!d||!r.type)return 0;
 if(r.type=="D")return d;
 if(r.type=="M")return Math.max(1,Math.floor(d/30));
-if(r.type=="W"){if(!r.start)return 0;const[y,m,dd]=r.start.split('-').map(Number);let c=0;for(let i=1;i<=d;i++){if(new Date(y,m-1,dd+i).getDay()==0)c++}return Math.max(1,c)}return 0}
-function pay(r){const n=cnt(r);if(!n)return 0;return Math.ceil(((+r.amt||0)+intr(r))/n)}
-function payCell(r){const n=cnt(r);if(!n)return"";const u={W:"Sundays",M:"months",D:"days"}[r.type];return f(pay(r))+' <small style="color:var(--mu);font-weight:400">× '+n+' '+u+'</small>'}
+if(r.type=="W")return Math.max(1,Math.floor(d/7));return 0}
+function pay(r){const n=cnt(r);if(!n)return 0;if(r.type=="M")return Math.ceil(pmon(r));return Math.ceil((+r.amt||0)/n)}
+function payCell(r){const n=cnt(r);if(!n||!pay(r))return"";const u={W:"weeks",M:"months",D:"days"}[r.type];return f(pay(r))+' <small style="color:var(--mu);font-weight:400">× '+n+' '+u+'</small>'}
 function sumP(r){return (r.pays||[]).reduce((s,x)=>s+(+x.a||0),0)}
 function hasP(r){return !!(r.pays&&r.pays.length)}
 function dep(r){return hasP(r)?sumP(r):(+r.dep||0)}
-function intr(r){return pday(r)*(+r.days||0)}
+function autoI(r){return pday(r)*(+r.days||0)}
+function ovI(r){return r.tint!==undefined&&r.tint!==null&&r.tint!==""&&!isNaN(+r.tint)}
+function intr(r){return ovI(r)?+r.tint:autoI(r)}
+function r2(x){return Math.round(x*100)/100}
+function setTint(i,j,v){const r=S.p[i].rows[j];r.tint=v;save();render();openDet(i,j)}
 function endD(r){if(!r.start||!r.days)return"";const[y,m,dd]=r.start.split('-').map(Number);const d=new Date(y,m-1,dd+ +r.days);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function fd(s){if(!s)return"";const[a,b,c]=s.split("-");return c+"-"+b+"-"+a}
 const f=n=>n.toLocaleString("en-IN",{maximumFractionDigits:2});
@@ -103,7 +103,7 @@ ${p.rows.map((r,j)=>`<tr><td>${j+1}</td>
 <td class="o">${fd(endD(r))}</td>
 <td class="o">${payCell(r)}</td>
 <td class="o">${f(dep(r))}</td>
-<td class="o">${f(intr(r))}</td>
+<td><div style="display:flex;gap:4px;align-items:center"><input type="number" step="0.01" value="${r2(intr(r))}" title="${ovI(r)?"Edited. ↺ click panna auto-ku varum":"Auto: Amount × Rate × Days. Maatha type pannunga"}" onchange="u(${i},${j},'tint',this.value)"${ovI(r)?' style="border-color:#d97706;min-width:90px"':' style="min-width:90px"'}>${ovI(r)?`<button class="x" title="Auto-ku maathu" onclick="u(${i},${j},'tint','')">↺</button>`:""}</div></td>
 <td class="o">${stBadge(r)}${st(r)=="Done"?((r.name&&r.native&&r.type)?` <button onmousedown="event.preventDefault()" onclick="submitRow(${i},${j})" style="padding:4px 10px;font-size:12px;margin-left:6px">Submit</button>`:` <small style="color:#dc2626">Name, Phone, Type podunga</small>`):""}${intNote(r)}</td>
 <td><button class="g" onclick="showDet(${i},${j})" style="padding:6px 12px;font-size:12px">Details</button></td>
 <td><button class="x" onclick="del(${i},${j})">✕</button></td></tr>`).join("")}
@@ -127,7 +127,8 @@ function tdy(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()
 function tl(r){return ({W:'Weekly',M:'Monthly',D:'Daily'})[r.type]||''}
 function toast(m,c){let t=document.getElementById("toast");if(!t){t=document.createElement("div");t.id="toast";t.style.cssText="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#16a34a;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:99;box-shadow:0 4px 14px rgba(0,0,0,.3)";document.body.appendChild(t)}t.style.background=c||"#16a34a";t.textContent=m;t.style.display="block";clearTimeout(t._h);t._h=setTimeout(()=>{t.style.display="none"},2500)}
 function submitRow(i,j){try{if(document.activeElement&&document.activeElement.blur)document.activeElement.blur()}catch(e){}
-const p=S.p[i],r=p&&p.rows[j];if(!r||st(r)!="Done")return;const du=idue(r,tdy());if(du>0){toast("⚠ Interest kattalai: ₹"+f(du)+" baaki. Interest katta piragu dhaan Done kudukka mudiyum","#dc2626");return}
+const p=S.p[i],r=p&&p.rows[j];if(!r||st(r)!="Done")return;const pdv=pdue(r);if(pdv>0){toast("⚠ "+(+r.days||0)+" naal interest ₹"+f(pdv)+" kattalai. Interest katta piragu dhaan Done kudukka mudiyum","#dc2626");return}
+const du=idue(r,tdy());if(du>0){toast("⚠ Interest kattalai: ₹"+f(du)+" baaki. Interest katta piragu dhaan Done kudukka mudiyum","#dc2626");return}
 const nm=r.name;r.subm=tdy();(p.done=p.done||[]).push(r);p.rows.splice(j,1);if(!p.rows.length)p.rows.push(blank());save();render();toast("✅ "+nm+" - Deposited Name List-ku poiduchu")}
 function restoreRow(x,y){const p=S.p[x],r=p.done.splice(y,1)[0];if(!r)return;delete r.subm;if(p.rows.length==1&&!p.rows[0].amt&&!p.rows[0].name)p.rows[0]=r;else p.rows.push(r);save();render();openTO(curK,curM)}
 function showTO(k,m){m=m||'p';openTO(k,m);try{history.pushState(null,"","#"+m+k)}catch(e){}}
@@ -155,7 +156,7 @@ ov.style.display="block";document.body.classList.add("pm");window.scrollTo(0,0)}
 function addD(iso,n){const[y,m,d]=iso.split("-").map(Number),t=new Date(Date.UTC(y,m-1,d+n));return t.toISOString().slice(0,10)}
 function sched(r){const d=+r.days||0;if(!r.start||!d||!r.type)return[];const e=addD(r.start,d);let a=[];
 if(r.type=="D")for(let i=1;i<=d;i++)a.push(addD(r.start,i));
-else if(r.type=="W"){for(let i=1;i<=d;i++){const x=addD(r.start,i);const[y,m,dd]=x.split("-").map(Number);if(new Date(Date.UTC(y,m-1,dd)).getUTCDay()==0)a.push(x)}if(!a.length)a=[e]}
+else if(r.type=="W"){const N=Math.max(1,Math.floor(d/7));for(let i=1;a.length<N&&i<=d+7*N+7;i++){const x=addD(r.start,i);const[y,m,dd]=x.split("-").map(Number);if(new Date(Date.UTC(y,m-1,dd)).getUTCDay()==0)a.push(x)}}
 else if(r.type=="M"){const n=Math.max(1,Math.floor(d/30));if(d<30)a=[e];else for(let i=1;i<=n;i++)a.push(addD(r.start,30*i))}
 return a}
 function missInfo(r){const S2=sched(r),pa=pay(r);if(!S2.length||!pa)return null;const T=tdy(),n=S2.length,due=S2.filter(x=>x<=T).length;
@@ -166,13 +167,26 @@ let h=box("Installments Due (till today)",m.due+" / "+m.n+" "+u)+box("Paid (cove
 if(!ok){const L=m.dates.slice(0,20).map(fd).join(", ")+(m.dates.length>20?" +"+(m.dates.length-20)+" more":"");h+=`<div style="grid-column:1/-1;border:1px solid #dc2626;border-radius:8px;padding:8px 10px"><div style="color:var(--mu);font-size:12px">Missed dates (kattaadha naal)</div><div style="font-weight:600;margin-top:2px;color:#dc2626">${L}</div></div>`}
 return h}
 function profInt(r){return intr(r)+ipaid(r)}
+function ppaid(r){return (r.ppays||[]).reduce((t,x)=>t+(+x.a||0),0)}
+function pdue(r){return Math.max(0,Math.round((intr(r)-ppaid(r))*100)/100)}
+function periodBoxes(r,i,j,inp){const I=intr(r);if(I<=0&&!ovI(r))return"";const du=pdue(r);
+return box("Interest for "+(+r.days||0)+" days ₹ ("+(ovI(r)?"edited":"auto")+")",`<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><input type="number" step="0.01" value="${r2(I)}" onchange="setTint(${i},${j},this.value)" style="${inp};width:110px;font-weight:700">${ovI(r)?`<button class="g" onclick="setTint(${i},${j},'')" style="padding:4px 8px;font-size:12px">↺ Auto (₹${f(autoI(r))})</button>`:""}</div>`)+box("Period Interest Paid ₹",f(ppaid(r)))+box("Period Interest Due ₹",`<span style="color:${du>0?"#dc2626":"#16a34a"};font-size:18px">${f(du)}</span>`)+box("Total Payable ₹ (Amount + Interest)",f((+r.amt||0)+I))}
+function pipHTML(r,i,j,inp){if(intr(r)<=0)return"";
+const L=(r.ppays||[]).map((y,k)=>`${y.d?fd(y.d):"-"} ₹${f(+y.a||0)} <button class="x" onclick="delPP(${i},${j},${k})">✕</button>`).join(" &nbsp;|&nbsp; ");
+return `<div class="dl" style="padding:10px;border:1px dashed var(--bd);border-radius:8px;margin:0 0 12px"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><b style="font-size:13px">${+r.days||0} days Interest Pay:</b><input id="ppd" type="text" inputmode="numeric" maxlength="10" placeholder="dd-mm-yyyy" value="${fd(tdy())}" oninput="fmtD(this)" style="${inp};width:125px"><input id="ppa" type="number" value="${pdue(r)||""}" placeholder="Interest ₹" onkeydown="if(event.key=='Enter')addPP(${i},${j})" style="${inp};width:140px"><button onclick="addPP(${i},${j})">+ Pay Interest</button><span id="ppmsg" style="color:#dc2626;font-size:13px"></span></div>${L?`<div style="font-size:13px;margin-top:8px;color:var(--mu)">Interest paid: ${L}</div>`:""}</div>`}
+function addPP(i,j){const r=S.p[i].rows[j],m=document.getElementById("ppmsg"),a=+document.getElementById("ppa").value,dv=document.getElementById("ppd").value.trim();
+if(!r.name||!(+r.amt>0)){m.textContent="Main table-la Name and Amount mudhala podunga";return}
+if(!(a>0)){m.textContent="Interest amount podunga";return}
+const d=dv?parseD(dv):tdy();if(d===null){m.textContent="Date dd-mm-yyyy format-la podunga";return}
+(r.ppays=r.ppays||[]).push({d:d,a:a});save();render();openDet(i,j)}
+function delPP(i,j,k){S.p[i].rows[j].ppays.splice(k,1);save();render();openDet(i,j)}
 function ipaid(r){return (r.ipays||[]).reduce((t,x)=>t+(+x.a||0),0)}
 function accr(r,upTo){const e=endD(r);if(!e||!upTo)return 0;const[y,m,d]=e.split("-").map(Number),[y2,m2,d2]=upTo.split("-").map(Number);const endT=Date.UTC(y2,m2-1,d2);
 const P=(r.pays||[]).map(x=>({t:x.d||"0000-00-00",a:+x.a||0})),hp=hasP(r),amt=+r.amt||0,rt=(+r.rate||0)/100/B();let tot=0;
 for(let t=Date.UTC(y,m-1,d+1);t<=endT;t+=86400000){const iso=new Date(t).toISOString().slice(0,10);const paid=hp?P.filter(x=>x.t<=iso).reduce((q,x)=>q+x.a,0):(+r.dep||0);tot+=Math.max(0,amt-paid)*rt}
 return tot}
 function idue(r,upTo){return Math.max(0,Math.round((accr(r,upTo)-ipaid(r))*100)/100)}
-function intNote(r){const d=idue(r,tdy());return d>0?` <small style="color:#dc2626;display:block">Interest ₹${f(d)} baaki</small>`:""}
+function intNote(r){const d=Math.round((idue(r,tdy())+pdue(r))*100)/100;return d>0?` <small style="color:#dc2626;display:block">Interest ₹${f(d)} baaki</small>`:""}
 function over(r){const e=endD(r);if(!e)return null;const c=r.cdate||tdy();const[y1,m1,d1]=e.split("-").map(Number),[y2,m2,d2]=c.split("-").map(Number);
 const days=Math.max(0,Math.round((Date.UTC(y2,m2-1,d2)-Date.UTC(y1,m1-1,d1))/86400000));
 const bal=Math.max(0,(+r.amt||0)-dep(r));const perDay=bal*(+r.rate||0)/100/B();const tot=accr(r,c);return{days:days,perDay:perDay,tot:tot,bal:bal,paid:ipaid(r),due:idue(r,c)}}
@@ -185,13 +199,13 @@ if(te!="Y")return h;
 h+=box("Current Date",`<input type="text" inputmode="numeric" maxlength="10" placeholder="dd-mm-yyyy" value="${fd(r.cdate||tdy())}" oninput="fmtD(this)" onchange="setCD(${i},${j},this.value)" style="${inp};width:125px">`);
 const x=over(r);
 if(!x)return h;
-return h+box("Overdue Days",x.days+(x.days?"":" (innum time mudiyala)"))+box("Per Day Interest on Balance ₹",f(x.perDay))+box("Interest till Current Date ₹",`<span style="color:#dc2626;font-size:18px">${f(x.tot)}</span>`)+box("Interest Paid ₹",f(x.paid))+box("Interest Due ₹",`<span style="color:${x.due>0?"#dc2626":"#16a34a"};font-size:18px">${f(x.due)}</span>`)+box("Balance + Interest Due ₹",f(x.bal+x.due))}
+return h+box("Overdue Days",x.days+(x.days?"":" (innum time mudiyala)"))+box("Per Day Interest on Balance ₹",f(x.perDay))+box("Late Interest till Current Date ₹",`<span style="color:#dc2626;font-size:18px">${f(x.tot)}</span>`)+box("Late Interest Paid ₹",f(x.paid))+box("Late Interest Due ₹",`<span style="color:${x.due>0?"#dc2626":"#16a34a"};font-size:18px">${f(x.due)}</span>`)+box("Balance + Interest Due ₹",f(x.bal+x.due))}
 function profSum(k){const E=(S.exp||[]).reduce((t,x)=>t+(+x.p||0),0),n=S.p.length||1,sh=E/n,lt=x=>S.p[x].rows.concat(S.p[x].done||[]).reduce((t,r)=>t+ipaid(r),0),pi=x=>toRowsD(x).reduce((t,e)=>t+intr(e.r),0),pr=x=>pi(x)+lt(x);
 if(k>=0){const t=pr(k),o=S.p.length==2?1-k:-1,other=o>=0?pr(o):0,give=o>=0?t/2:0,recv=other/2;return{tI:t,ints:pi(k),late:lt(k),E:E,sh:sh,give:give,recv:recv,on:o>=0?S.p[o].title:"",sub:t-give+recv,net:t-give+recv-sh,list:[]}}
 const list=S.p.map((p,x)=>({t:p.title,p:pr(x),late:lt(x),net:pr(x)-sh}));const tI=list.reduce((t,y)=>t+y.p,0);return{tI:tI,E:E,sh:sh,net:tI-E,list:list}}
 function netBox(l,v){return box(l,`<span style="color:${v>=0?"#16a34a":"#dc2626"};font-size:20px">${f(v)}</span>`)}
 function profBoxes(k){const ps=profSum(k),n=S.p.length||1;let h="";
-if(k>=0){h=box("Interest ₹ (submitted names)",f(ps.ints))+box("Late Interest ₹ (paid, all names)",f(ps.late))+box("Profit ₹ (Interest + Late Interest)",f(ps.tI))+box("Given to "+ps.on+" ₹ (Profit ÷ 2)",`<span style="color:#dc2626">− ${f(ps.give)}</span>`)+box("Received from "+ps.on+" ₹ (its Profit ÷ 2)",`<span style="color:#16a34a">+ ${f(ps.recv)}</span>`)+box("Profit after sharing ₹ (Profit − Given + Received)",f(ps.sub))+box("Expenses Share ₹ ("+f(ps.E)+" ÷ "+n+")",`<span style="color:#dc2626">− ${f(ps.sh)}</span>`)+netBox("Total Profit ₹ (after Expenses Share)",ps.net)}
+if(k>=0){h=box("Interest ₹ (submitted names)",f(ps.ints))+box("Late Interest ₹ (paid, all names)",f(ps.late))+box("Profit ₹ (Interest + Late Interest)",f(ps.tI))+(ps.on?(box("Given to "+ps.on+" ₹ (Profit ÷ 2)",`<span style="color:#dc2626">− ${f(ps.give)}</span>`)+box("Received from "+ps.on+" ₹ (its Profit ÷ 2)",`<span style="color:#16a34a">+ ${f(ps.recv)}</span>`)+box("Profit after sharing ₹ (Profit − Given + Received)",f(ps.sub))):"")+box(n==1?"Expenses ₹":"Expenses Share ₹ ("+f(ps.E)+" ÷ "+n+")",`<span style="color:#dc2626">− ${f(ps.sh)}</span>`)+netBox("Total Profit ₹ (after Expenses Share)",ps.net)}
 else{h=ps.list.map(y=>box(y.t+" Profit ₹",f(y.p))+box(y.t+" Late Interest ₹ (included)",f(y.late))).join("")+box("Overall Profit ₹",f(ps.tI))+box("Total Expenses ₹",f(ps.E))+netBox("Total Profit ₹ (Overall Profit − Total Expenses)",ps.net)}
 return `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-bottom:14px">${h}</div>`}
 function showOver(){openOver();try{history.pushState(null,"","#o")}catch(e){}}
@@ -223,7 +237,7 @@ function delExp(k){S.exp.splice(k,1);save();openExp()}
 function dlExp(){const E=S.exp||[];const o=[["Expenses"],["No","Date","Bought","Price"]];E.forEach((x,k)=>o.push([k+1,fd(x.d),x.n,x.p]));o.push(["Total","","",E.reduce((s,x)=>s+(+x.p||0),0)]);get("Expenses.csv",o.map(a=>a.map(q).join(",")).join("\n"))}
 function ipHTML(r,i,j,inp){if(teAuto(r)!="Y")return"";const x=over(r);if(!x)return"";
 const L=(r.ipays||[]).map((y,k)=>`${y.d?fd(y.d):"-"} ₹${f(+y.a||0)} <button class="x" onclick="delIP(${i},${j},${k})">✕</button>`).join(" &nbsp;|&nbsp; ");
-return `<div class="dl" style="padding:10px;border:1px dashed var(--bd);border-radius:8px;margin:0 0 12px"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><b style="font-size:13px">Interest Pay:</b><input id="ipd" type="text" inputmode="numeric" maxlength="10" placeholder="dd-mm-yyyy" value="${fd(tdy())}" oninput="fmtD(this)" style="${inp};width:125px"><input id="ipa" type="number" value="${x.due||""}" placeholder="Interest ₹" onkeydown="if(event.key=='Enter')addIP(${i},${j})" style="${inp};width:140px"><button onclick="addIP(${i},${j})">+ Pay Interest</button><span id="imsg" style="color:#dc2626;font-size:13px"></span></div>${L?`<div style="font-size:13px;margin-top:8px;color:var(--mu)">Interest paid: ${L}</div>`:""}</div>`}
+return `<div class="dl" style="padding:10px;border:1px dashed var(--bd);border-radius:8px;margin:0 0 12px"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><b style="font-size:13px">Late Interest Pay:</b><input id="ipd" type="text" inputmode="numeric" maxlength="10" placeholder="dd-mm-yyyy" value="${fd(tdy())}" oninput="fmtD(this)" style="${inp};width:125px"><input id="ipa" type="number" value="${x.due||""}" placeholder="Interest ₹" onkeydown="if(event.key=='Enter')addIP(${i},${j})" style="${inp};width:140px"><button onclick="addIP(${i},${j})">+ Pay Interest</button><span id="imsg" style="color:#dc2626;font-size:13px"></span></div>${L?`<div style="font-size:13px;margin-top:8px;color:var(--mu)">Interest paid: ${L}</div>`:""}</div>`}
 function addIP(i,j){const r=S.p[i].rows[j],m=document.getElementById("imsg"),a=+document.getElementById("ipa").value,dv=document.getElementById("ipd").value.trim();
 if(!(a>0)){m.textContent="Interest amount podunga";return}
 const d=dv?parseD(dv):tdy();if(d===null){m.textContent="Date dd-mm-yyyy format-la podunga";return}
@@ -238,9 +252,9 @@ const amt=+r.amt||0,tot=dep(r),bal=amt-tot,L=ledger(r),ok=!!(r.name&&amt>0);
 const inp="padding:8px;border:1px solid var(--bd);border-radius:6px;background:var(--card);color:var(--tx);font-size:14px";
 const rows=L.length?L.map((x,k)=>`<tr><td>${k+1}</td><td>${x.d?fd(x.d):"-"}</td><td>${f(x.a)}</td><td style="font-weight:700;color:${x.b<=0?"#16a34a":"#dc2626"}">${f(x.b)}</td><td><button class="x" onclick="delPay(${i},${j},${k})">✕</button></td></tr>`).join(""):`<tr><td colspan="5" style="padding:14px;text-align:center">Innum deposit enter pannala</td></tr>`;
 ov.innerHTML=`<div class="mb"><div class="hd"><b style="font-size:18px">Details - ${r.name||"(name illa)"} <span style="color:var(--mu);font-weight:400;font-size:14px">(${p.title})</span></b><span class="dl"><button onclick="dlDet(${i},${j})">⬇ Download</button> <button class="g" onclick="window.print()">🖨 Print</button> <button class="g" onclick="hideTO()">← Back</button></span></div>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">${box("Name",r.name||"-")}${box("Phone Number",r.native||"-")}${box("Guarantor",r.guar||"-")}${box("Type",tl(r)||"-")}${box("Amount ₹",f(amt))}${box("Starting Date",fd(r.start)||"-")}${box("End Date",fd(endD(r))||"-")}${box("Pay (Method)",payCell(r)||"-")}${box("Total Deposit ₹",`<span style="color:#16a34a">${f(tot)}</span>`)}${box("Balance ₹",`<span style="color:${bal<=0?"#16a34a":"#dc2626"};font-size:18px">${f(bal)}</span>`)}${teBoxes(r,i,j,bal,inp)}${missBoxes(r)}</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">${box("Name",r.name||"-")}${box("Phone Number",r.native||"-")}${box("Guarantor",r.guar||"-")}${box("Type",tl(r)||"-")}${box("Amount ₹",f(amt))}${box("Starting Date",fd(r.start)||"-")}${box("End Date",fd(endD(r))||"-")}${box("Pay (Method)",payCell(r)||"-")}${box("Total Deposit ₹",`<span style="color:#16a34a">${f(tot)}</span>`)}${box("Balance ₹",`<span style="color:${bal<=0?"#16a34a":"#dc2626"};font-size:18px">${f(bal)}</span>`)}${periodBoxes(r,i,j,inp)}${teBoxes(r,i,j,bal,inp)}${missBoxes(r)}</div>
 <div class="dl" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:16px 0 10px"><input id="pd" type="text" inputmode="numeric" maxlength="10" placeholder="dd-mm-yyyy" value="${fd(tdy())}" oninput="fmtD(this)" style="${inp};width:125px"><input id="pa" type="number" value="${pay(r)||''}" placeholder="Deposit amount ₹" onkeydown="if(event.key=='Enter')addPay(${i},${j})" style="${inp};width:170px"><button onclick="addPay(${i},${j})"${ok?"":' disabled style="opacity:.45;cursor:not-allowed"'}>+ Add Deposit</button><span id="pmsg" style="color:#dc2626;font-size:13px">${ok?"":"Main table-la Name and Amount mudhala podunga"}</span></div>
-${ipHTML(r,i,j,inp)}<div class="sc"><table style="min-width:420px"><thead><tr><th>No</th><th>Date</th><th>Deposit ₹</th><th>Balance ₹</th><th></th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="2">Total</td><td>${f(tot)}</td><td>${f(bal)}</td><td></td></tr></tfoot></table></div></div>`;
+${pipHTML(r,i,j,inp)}${ipHTML(r,i,j,inp)}<div class="sc"><table style="min-width:420px"><thead><tr><th>No</th><th>Date</th><th>Deposit ₹</th><th>Balance ₹</th><th></th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="2">Total</td><td>${f(tot)}</td><td>${f(bal)}</td><td></td></tr></tfoot></table></div></div>`;
 ov.style.display="block";document.body.classList.add("pm");window.scrollTo(0,0)}
 function addPay(i,j){const r=S.p[i].rows[j],msg=document.getElementById("pmsg"),a=+document.getElementById("pa").value,dv=document.getElementById("pd").value.trim();
 if(!r.name||!(+r.amt>0)){msg.textContent="Main table-la Name and Amount mudhala podunga";return}
@@ -251,22 +265,22 @@ r.pays.push({d:d,a:a});save();render();openDet(i,j);document.getElementById("pa"
 function delPay(i,j,k){const r=S.p[i].rows[j];r.pays.splice(k,1);save();render();openDet(i,j)}
 function dlDet(i,j){const r=S.p[i].rows[j],L=ledger(r),amt=+r.amt||0;
 const o=[["Details - "+(r.name||"")],["Partner",S.p[i].title],["Name",r.name],["Phone Number",r.native],["Guarantor",r.guar],["Type",tl(r)],["Amount",amt],["Starting Date",fd(r.start)],["End Date",fd(endD(r))],["Total Deposit",dep(r)],["Balance",amt-dep(r)],[],["No","Date","Deposit","Balance"]];
-{const te=teAuto(r),ins=[["Time End",te=="Y"?"Yes":"No"]];if(te=="Y"){const x=over(r);ins.push(["Current Date",fd(r.cdate||tdy())]);if(x)ins.push(["Overdue Days",x.days],["Interest till Current Date",x.tot.toFixed(2)],["Interest Paid",x.paid.toFixed(2)],["Interest Due",x.due.toFixed(2)])}const ms=missInfo(r);if(ms)ins.push(["Installments Due",ms.due],["Installments Paid (covered)",ms.covered],["Missed to Pay",ms.missed],["Missed Amount",ms.amt]);o.splice(11,0,...ins)}
+{const te=teAuto(r),ins=[["Interest (period)",intr(r).toFixed(2)],["Interest Paid (period)",ppaid(r).toFixed(2)],["Interest Due (period)",pdue(r).toFixed(2)],["Time End",te=="Y"?"Yes":"No"]];if(te=="Y"){const x=over(r);ins.push(["Current Date",fd(r.cdate||tdy())]);if(x)ins.push(["Overdue Days",x.days],["Interest till Current Date",x.tot.toFixed(2)],["Interest Paid",x.paid.toFixed(2)],["Interest Due",x.due.toFixed(2)])}const ms=missInfo(r);if(ms)ins.push(["Installments Due",ms.due],["Installments Paid (covered)",ms.covered],["Missed to Pay",ms.missed],["Missed Amount",ms.amt]);o.splice(11,0,...ins)}
 L.forEach((x,k)=>o.push([k+1,x.d?fd(x.d):"",x.a,x.b]));
 get("Details-"+(r.name||"row")+".csv",o.map(a=>a.map(q).join(",")).join("\n"))}
 function closeTO(){document.getElementById("ov").style.display="none";document.body.classList.remove("pm")}
 function dlTO(k,m){m=m||'p';const all=k<0;let h,o;
 if(m=='d'){h=["No"].concat(all?["Partner"]:[],["Name","Phone Number","Guarantor Name","Type","Amount","Total Interest","Deposit","Submitted On"]);o=toRowsD(k).map((e,i)=>[i+1].concat(all?[e.pt]:[],[e.r.name,e.r.native,e.r.guar,tl(e.r),e.r.amt,intr(e.r).toFixed(2),dep(e.r),fd(e.r.subm)]))}
-else if(m=='f'){const D=toRowsD(k);h=["No"].concat(all?["Partner"]:[],["Name","Type","Amount","Interest","Late Interest"]);o=D.map((e,i)=>[i+1].concat(all?[e.pt]:[],[e.r.name,tl(e.r),e.r.amt,intr(e.r).toFixed(2),ipaid(e.r).toFixed(2)]));o.push(["Total"].concat(all?[""]:[],["","",D.reduce((s,e)=>s+(+e.r.amt||0),0),D.reduce((s,e)=>s+intr(e.r),0).toFixed(2),D.reduce((s,e)=>s+ipaid(e.r),0).toFixed(2)]));const ps=profSum(k);o.push([]);ps.list.forEach(y=>{o.push([y.t+" Profit",y.p.toFixed(2)],[y.t+" Late Interest",y.late.toFixed(2)])});if(k>=0)o.push(["Interest (submitted)",ps.ints.toFixed(2)],["Late Interest",ps.late.toFixed(2)]);o.push([k<0?"Overall Profit":"Profit",ps.tI.toFixed(2)]);if(k>=0)o.push(["Given to "+ps.on+" (half)",ps.give.toFixed(2)],["Received from "+ps.on+" (half)",ps.recv.toFixed(2)]);if(k>=0)o.push(["Profit after sharing",ps.sub.toFixed(2)],["Expenses Share",ps.sh.toFixed(2)]);else o.push(["Total Expenses",ps.E.toFixed(2)]);o.push(["Total Profit",ps.net.toFixed(2)])}
+else if(m=='f'){const D=toRowsD(k);h=["No"].concat(all?["Partner"]:[],["Name","Type","Amount","Interest","Late Interest"]);o=D.map((e,i)=>[i+1].concat(all?[e.pt]:[],[e.r.name,tl(e.r),e.r.amt,intr(e.r).toFixed(2),ipaid(e.r).toFixed(2)]));o.push(["Total"].concat(all?[""]:[],["","",D.reduce((s,e)=>s+(+e.r.amt||0),0),D.reduce((s,e)=>s+intr(e.r),0).toFixed(2),D.reduce((s,e)=>s+ipaid(e.r),0).toFixed(2)]));const ps=profSum(k);o.push([]);ps.list.forEach(y=>{o.push([y.t+" Profit",y.p.toFixed(2)],[y.t+" Late Interest",y.late.toFixed(2)])});if(k>=0)o.push(["Interest (submitted)",ps.ints.toFixed(2)],["Late Interest",ps.late.toFixed(2)]);o.push([k<0?"Overall Profit":"Profit",ps.tI.toFixed(2)]);if(k>=0&&ps.on)o.push(["Given to "+ps.on+" (half)",ps.give.toFixed(2)],["Received from "+ps.on+" (half)",ps.recv.toFixed(2)]);if(k>=0)o.push(["Profit after sharing",ps.sub.toFixed(2)],["Expenses Share",ps.sh.toFixed(2)]);else o.push(["Total Expenses",ps.E.toFixed(2)]);o.push(["Total Profit",ps.net.toFixed(2)])}
 else{h=["No"].concat(all?["Partner"]:[],["Name","Phone Number","Guarantor Name","Amount","Deposit","Balance"]);o=toRows(k).map((r,i)=>[i+1].concat(all?[r.pt]:[],[r.name,r.ph,r.g,r.a,r.d,r.b]))}
 get(ttl(k,m).replace(/ /g,"-")+".csv",[[ttl(k,m)],h,...o].map(r=>r.map(q).join(",")).join("\n"))}
 let LU="";
 function doLogin(){const u=document.getElementById("lu").value.trim(),pw=document.getElementById("lp").value,e=document.getElementById("lerr");
 if(!u){e.textContent="User Name podunga";return}
 if(pw!=="passwordlogin"){e.textContent="Password thappu, marubadiyum try pannunga";return}
-e.textContent="";LU=u;try{localStorage.setItem("finlogin",u)}catch(x){}showApp()}
+e.textContent="";LU=u;try{localStorage.setItem("finloginE",u)}catch(x){}showApp()}
 function showApp(){document.getElementById("lg").style.display="none";document.getElementById("main").style.display="block";document.getElementById("ulbl").textContent="👤 "+LU}
-function logout(){LU="";try{localStorage.removeItem("finlogin")}catch(x){}closeTO();document.getElementById("main").style.display="none";document.getElementById("lg").style.display="flex";document.getElementById("lp").value="";document.getElementById("lu").value=""}
-try{const sv=localStorage.getItem("finlogin");if(sv){LU=sv}}catch(x){}
+function logout(){LU="";try{localStorage.removeItem("finloginE")}catch(x){}closeTO();document.getElementById("main").style.display="none";document.getElementById("lg").style.display="flex";document.getElementById("lp").value="";document.getElementById("lu").value=""}
+try{const sv=localStorage.getItem("finloginE");if(sv){LU=sv}}catch(x){}
 load();render();if(LU)showApp();
 </script></body></html>
